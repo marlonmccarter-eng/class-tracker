@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Army Fitness Test - Marlon's Tracker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // GOOGLE SHEETS CONFIGURATION
+        const SCRIPT_URL = 'YOUR_SCRIPT_URL_HERE';
+
+        // Icons
+        const ArrowLeft = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        );
+
+        const AlertCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        );
+
+        const CheckCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        );
+
+        const Clock = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        );
+
+        const Edit = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        );
+
+        const Save = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+        );
+
+        const RefreshCw = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+        );
+
+        function AFTTracker() {
+            const [currentTest, setCurrentTest] = useState(null);
+            const [formData, setFormData] = useState({
+                dateTaken: '',
+                status: 'Pass',
+                height: '',
+                weight: ''
+            });
+            const [saveMessage, setSaveMessage] = useState('');
+            const [isEditing, setIsEditing] = useState(false);
+            const [isLoading, setIsLoading] = useState(false);
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [isSetupComplete, setIsSetupComplete] = useState(SCRIPT_URL !== 'YOUR_SCRIPT_URL_HERE');
+
+            useEffect(() => {
+                if (isSetupComplete) {
+                    loadFromSheets();
+                }
+            }, [isSetupComplete]);
+
+            const loadFromSheets = async () => {
+                if (!isSetupComplete) return;
+                
+                setIsLoading(true);
+                try {
+                    const response = await fetch(SCRIPT_URL + '?action=readAFT');
+                    const data = await response.json();
+                    
+                    if (data.success && data.aftTest) {
+                        setCurrentTest(data.aftTest);
+                    }
+                } catch (error) {
+                    console.error('Error loading from sheets:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const saveToSheets = async (testData) => {
+                if (!isSetupComplete) return;
+                
+                setIsSyncing(true);
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'writeAFT',
+                            aftTest: testData
+                        })
+                    });
+                    showSaveMessage('Synced to Google Sheets!');
+                } catch (error) {
+                    console.error('Error saving to sheets:', error);
+                } finally {
+                    setIsSyncing(false);
+                }
+            };
+
+            const calculateStatus = (dueDate) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const due = new Date(dueDate);
+                due.setHours(0, 0, 0, 0);
+                
+                const sixMonthsBeforeDue = new Date(due);
+                sixMonthsBeforeDue.setDate(sixMonthsBeforeDue.getDate() - 180);
+                
+                const diffTime = due - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) {
+                    return { status: 'overdue', color: 'red', label: 'Past Due', days: Math.abs(diffDays) };
+                } else if (today >= sixMonthsBeforeDue) {
+                    return { status: 'warning', color: 'yellow', label: 'Due Soon', days: diffDays };
+                } else {
+                    return { status: 'good', color: 'green', label: 'Current', days: diffDays };
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.dateTaken && formData.height && formData.weight) {
+                    const dateTaken = new Date(formData.dateTaken);
+                    const dueDate = new Date(dateTaken);
+                    dueDate.setFullYear(dueDate.getFullYear() + 1);
+                    
+                    const newTest = {
+                        dateTaken: formData.dateTaken,
+                        dueDate: dueDate.toISOString().split('T')[0],
+                        status: formData.status,
+                        height: formData.height,
+                        weight: formData.weight
+                    };
+                    
+                    setCurrentTest(newTest);
+                    setFormData({ dateTaken: '', status: 'Pass', height: '', weight: '' });
+                    showSaveMessage('AFT Test updated!');
+                    
+                    if (isSetupComplete) {
+                        saveToSheets(newTest);
+                    }
+                }
+            };
+
+            const startEditing = () => {
+                setIsEditing(true);
+                setFormData({
+                    dateTaken: currentTest.dateTaken,
+                    status: currentTest.status,
+                    height: currentTest.height,
+                    weight: currentTest.weight
+                });
+            };
+
+            const cancelEditing = () => {
+                setIsEditing(false);
+                setFormData({ dateTaken: '', status: 'Pass', height: '', weight: '' });
+            };
+
+            const showSaveMessage = (message) => {
+                setSaveMessage(message);
+                setTimeout(() => setSaveMessage(''), 3000);
+            };
+
+            const getStatusStyles = (color) => {
+                switch(color) {
+                    case 'red':
+                        return 'bg-red-100 border-red-500 text-red-900';
+                    case 'yellow':
+                        return 'bg-yellow-100 border-yellow-500 text-yellow-900';
+                    case 'green':
+                        return 'bg-green-100 border-green-500 text-green-900';
+                    default:
+                        return 'bg-gray-100 border-gray-500 text-gray-900';
+                }
+            };
+
+            const getStatusIcon = (color) => {
+                switch(color) {
+                    case 'red':
+                        return <AlertCircle className="w-5 h-5" />;
+                    case 'yellow':
+                        return <Clock className="w-5 h-5" />;
+                    case 'green':
+                        return <CheckCircle className="w-5 h-5" />;
+                    default:
+                        return null;
+                }
+            };
+
+            const statusInfo = currentTest ? calculateStatus(currentTest.dueDate) : null;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4 md:p-6">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center">
+                                    <a href="./tracker-dashboard.html" className="mr-4 text-gray-600 hover:text-gray-800 transition">
+                                        <ArrowLeft className="w-6 h-6" />
+                                    </a>
+                                    <div>
+                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Army Fitness Test & Height/Weight</h1>
+                                        <p className="text-sm md:text-base text-gray-600">Track your annual AFT and H&W - Marlon's Tracker</p>
+                                    </div>
+                                </div>
+                                {isSetupComplete && (
+                                    <button
+                                        onClick={loadFromSheets}
+                                        disabled={isLoading || isSyncing}
+                                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center text-sm"
+                                    >
+                                        <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                                        Refresh
+                                    </button>
+                                )}
+                            </div>
+                            {saveMessage && (
+                                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg flex items-center text-sm">
+                                    <Save className="w-4 h-4 mr-2" />
+                                    {saveMessage}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Current Status Card */}
+                        {currentTest && statusInfo && !isEditing && (
+                            <div className={`mb-6 p-6 rounded-lg border-l-4 ${getStatusStyles(statusInfo.color)} shadow-lg`}>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-start flex-1">
+                                        {getStatusIcon(statusInfo.color)}
+                                        <div className="ml-3 flex-1">
+                                            <h3 className="text-xl font-bold mb-3">Current Status</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <p className="text-sm opacity-75">Last Test Date</p>
+                                                    <p className="font-semibold">{new Date(currentTest.dateTaken).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-75">Due Date</p>
+                                                    <p className="font-semibold">{new Date(currentTest.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-75">Status</p>
+                                                    <p className="font-semibold">
+                                                        {statusInfo.label} - {statusInfo.status === 'overdue' ? `${statusInfo.days} days overdue` : `${statusInfo.days} days remaining`}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-75">AFT Result</p>
+                                                    <p className={`font-semibold ${currentTest.status === 'Pass' ? 'text-green-700' : 'text-red-700'}`}>
+                                                        {currentTest.status === 'Pass' ? '✓ Pass' : '✗ Fail'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-300">
+                                                <div>
+                                                    <p className="text-sm opacity-75">Height</p>
+                                                    <p className="font-semibold">{currentTest.height} inches</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm opacity-75">Weight</p>
+                                                    <p className="font-semibold">{currentTest.weight} lbs</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={startEditing}
+                                        className="ml-4 text-gray-400 hover:text-green-600 transition"
+                                    >
+                                        <Edit className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Form */}
+                        {(!currentTest || isEditing) && (
+                            <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+                                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                                    {isEditing ? 'Update AFT & Height/Weight' : 'Record AFT & Height/Weight'}
+                                </h2>
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Date Taken
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.dateTaken}
+                                            onChange={(e) => setFormData({ ...formData, dateTaken: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Due date will be automatically set to 1 year from this date</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            AFT Result
+                                        </label>
+                                        <select
+                                            value={formData.status}
+                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        >
+                                            <option value="Pass">Pass</option>
+                                            <option value="Fail">Fail</option>
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Height (inches)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={formData.height}
+                                                onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                                                placeholder="e.g., 70"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Weight (lbs)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={formData.weight}
+                                                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                                                placeholder="e.g., 180"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="submit"
+                                            disabled={isSyncing}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+                                        >
+                                            <Save className="w-5 h-5 mr-2" />
+                                            {isEditing ? 'Update' : 'Save'}
+                                        </button>
+                                        {isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={cancelEditing}
+                                                className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg transition duration-200"
+                                            >
+                                                Cancel
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h3 className="font-semibold text-green-900 mb-2">💪 AFT & H/W Tracker Info</h3>
+                            <p className="text-sm text-green-800">
+                                AFT and Height/Weight are due annually. System tracks only your most recent entry. Yellow warning at 180 days (6 months), red when overdue. Click "Refresh" to sync!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AFTTracker />);
+    </script>
+</body>
+</html>
