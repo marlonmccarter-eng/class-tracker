@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Test - Marlon's Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">🔍 Connection Test</h1>
+        
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
+            <h2 class="font-bold text-blue-900 mb-2">Instructions:</h2>
+            <ol class="text-sm text-blue-800 space-y-1">
+                <li>1. Add your Script URL below</li>
+                <li>2. Click "Test Connection"</li>
+                <li>3. See what's wrong!</li>
+            </ol>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Your Script URL:</label>
+            <input type="text" id="scriptUrl" 
+                placeholder="https://script.google.com/macros/s/YOUR_ID/exec"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-500 mt-1">Paste your Google Apps Script Web app URL</p>
+        </div>
+
+        <button onclick="testConnection()" 
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg mb-4">
+            🔍 Test Connection
+        </button>
+
+        <div id="results" class="space-y-3"></div>
+    </div>
+
+    <script>
+        async function testConnection() {
+            const scriptUrl = document.getElementById('scriptUrl').value.trim();
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="text-center text-gray-500">Testing...</div>';
+
+            if (!scriptUrl || scriptUrl === 'YOUR_SCRIPT_URL_HERE') {
+                results.innerHTML = `
+                    <div class="p-4 bg-red-50 border border-red-200 rounded">
+                        <h3 class="font-bold text-red-900 mb-2">❌ No Script URL!</h3>
+                        <p class="text-sm text-red-800">You need to paste your Script URL above.</p>
+                        <p class="text-sm text-red-800 mt-2">Get it from: Extensions → Apps Script → Deploy → Manage deployments → Copy URL</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tests = [
+                { name: 'Test 1: Read MyTraining', url: scriptUrl + '?action=readMyTraining', expected: 'mytraining' },
+                { name: 'Test 2: Read AFT', url: scriptUrl + '?action=readAFT', expected: 'aft' },
+                { name: 'Test 3: Read Miscellaneous', url: scriptUrl + '?action=readMiscellaneous', expected: 'miscellaneous' },
+                { name: 'Test 4: Get All Data', url: scriptUrl + '?action=getAllData', expected: 'mytraining' }
+            ];
+
+            let html = '';
+            let allPassed = true;
+
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    const data = await response.json();
+                    
+                    if (data.success && data[test.expected] !== undefined) {
+                        html += `
+                            <div class="p-4 bg-green-50 border border-green-200 rounded">
+                                <h3 class="font-bold text-green-900">✅ ${test.name} - PASSED</h3>
+                                <p class="text-xs text-green-700 mt-1">Response: ${JSON.stringify(data).substring(0, 100)}...</p>
+                            </div>
+                        `;
+                    } else {
+                        allPassed = false;
+                        html += `
+                            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
+                                <h3 class="font-bold text-yellow-900">⚠️ ${test.name} - UNEXPECTED RESPONSE</h3>
+                                <p class="text-xs text-yellow-700 mt-1">Got: ${JSON.stringify(data)}</p>
+                                <p class="text-xs text-yellow-700 mt-1">Expected property: ${test.expected}</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    allPassed = false;
+                    html += `
+                        <div class="p-4 bg-red-50 border border-red-200 rounded">
+                            <h3 class="font-bold text-red-900">❌ ${test.name} - FAILED</h3>
+                            <p class="text-sm text-red-800 mt-1">${error.message}</p>
+                            <p class="text-xs text-red-700 mt-2">Common causes:</p>
+                            <ul class="text-xs text-red-700 list-disc ml-4 mt-1">
+                                <li>Wrong Script URL</li>
+                                <li>Apps Script not deployed</li>
+                                <li>Deployment doesn't have "Anyone" access</li>
+                                <li>Old code in Apps Script</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            }
+
+            // Test POST (write)
+            try {
+                const testData = {
+                    action: 'writeMyTraining',
+                    mytraining: [{ id: 999999, name: 'TEST', dateTaken: '2024-01-01', dueDate: '2025-01-01' }]
+                };
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    html += `
+                        <div class="p-4 bg-green-50 border border-green-200 rounded">
+                            <h3 class="font-bold text-green-900">✅ Test 5: Write Test - PASSED</h3>
+                            <p class="text-xs text-green-700 mt-1">POST requests are working!</p>
+                            <p class="text-xs text-green-700 mt-1">Check your Google Sheet "MyTraining" tab for a TEST entry (you can delete it)</p>
+                        </div>
+                    `;
+                } else {
+                    allPassed = false;
+                    html += `
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded">
+                            <h3 class="font-bold text-yellow-900">⚠️ Test 5: Write Test - UNEXPECTED</h3>
+                            <p class="text-xs text-yellow-700 mt-1">${JSON.stringify(data)}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                allPassed = false;
+                html += `
+                    <div class="p-4 bg-red-50 border border-red-200 rounded">
+                        <h3 class="font-bold text-red-900">❌ Test 5: Write Test - FAILED</h3>
+                        <p class="text-sm text-red-800 mt-1">${error.message}</p>
+                        <p class="text-xs text-red-700 mt-2">This is why saving doesn't work!</p>
+                    </div>
+                `;
+            }
+
+            // Summary
+            if (allPassed) {
+                html += `
+                    <div class="p-4 bg-green-100 border-2 border-green-500 rounded-lg">
+                        <h3 class="font-bold text-green-900 text-lg">🎉 ALL TESTS PASSED!</h3>
+                        <p class="text-green-800 mt-2">Your Script URL is correct and Apps Script is working!</p>
+                        <p class="text-green-800 mt-2"><strong>Next step:</strong> Make sure this SAME Script URL is in all your HTML files on GitHub.</p>
+                        <p class="text-sm text-green-700 mt-2">Files that need this URL:</p>
+                        <ul class="text-sm text-green-700 list-disc ml-4">
+                            <li>my-training.html</li>
+                            <li>aft-tracker.html</li>
+                            <li>miscellaneous-tracker.html</li>
+                            <li>tracker-dashboard.html</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="p-4 bg-red-100 border-2 border-red-500 rounded-lg">
+                        <h3 class="font-bold text-red-900 text-lg">❌ TESTS FAILED</h3>
+                        <p class="text-red-800 mt-2"><strong>What to do:</strong></p>
+                        <ol class="text-sm text-red-700 list-decimal ml-4 mt-2 space-y-1">
+                            <li>Open your Google Sheet</li>
+                            <li>Extensions → Apps Script</li>
+                            <li>Make sure you have the FIXED code</li>
+                            <li>Save it</li>
+                            <li>Deploy → Manage deployments → Edit → New version</li>
+                            <li>Make sure "Anyone" has access</li>
+                            <li>Copy the new URL and test again</li>
+                        </ol>
+                    </div>
+                `;
+            }
+
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
