@@ -113,34 +113,7 @@
                             });
                         }
 
-                        // Process AFT (single entry)
-                        if (data.aft && data.aft.dueDate) {
-                            const status = calculateStatus(data.aft.dueDate, 180);
-                            if (status.status !== 'good') {
-                                allAlerts.push({
-                                    type: 'AFT',
-                                    name: 'Army Fitness Test',
-                                    status: status.status,
-                                    message: status.status === 'overdue' ? `${status.days} days overdue` : `Due in ${status.days} days`,
-                                    color: status.color,
-                                    extra: data.aft.status === 'Pass' ? '✓ Last: Pass' : '✗ Last: Fail'
-                                });
-                            }
-                        }
-
-                        // Process Height/Weight (single entry)
-                        if (data.hw && data.hw.dueDate) {
-                            const status = calculateStatus(data.hw.dueDate, 180);
-                            if (status.status !== 'good') {
-                                allAlerts.push({
-                                    type: 'H/W',
-                                    name: 'Height/Weight',
-                                    status: status.status,
-                                    message: status.status === 'overdue' ? `${status.days} days overdue` : `Due in ${status.days} days`,
-                                    color: status.color
-                                });
-                            }
-                        }
+                      
 
                         // Process medical
                         if (data.medical && data.medical.length > 0) {
