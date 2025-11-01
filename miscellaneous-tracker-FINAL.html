@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miscellaneous Tracker - Marlon's Tracker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYA3xLErpCjTwR7ChH5pNuMWQForc3YzFem0BTOStdkdXz_cGKQVgIx18vvqHN0hfR/exec';
+        
+        const ArrowLeft = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        );
+        const RefreshCw = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+        );
+        const CheckCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        );
+        const AlertCircle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        );
+        const Clock = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        );
+        const Plus = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+        const Edit = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        );
+        const X = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+        const Save = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+        );
+
+        function AdministrationTracker() {
+            const [items, setItems] = useState([]);
+            const [formData, setFormData] = useState({ name: '', dateTaken: '', dueDate: '' });
+            const [saveMessage, setSaveMessage] = useState('');
+            const [editingId, setEditingId] = useState(null);
+            const [editData, setEditData] = useState({ name: '', dateTaken: '', dueDate: '' });
+            const [isLoading, setIsLoading] = useState(false);
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [isSetupComplete, setIsSetupComplete] = useState(SCRIPT_URL !== 'YOUR_SCRIPT_URL_HERE');
+
+            useEffect(() => {
+                if (isSetupComplete) loadFromSheets();
+            }, [isSetupComplete]);
+
+            const loadFromSheets = async () => {
+                if (!isSetupComplete) return;
+                setIsLoading(true);
+                try {
+                    const response = await fetch(SCRIPT_URL + '?action=readMiscellaneous');
+                    const data = await response.json();
+                    if (data.success) setItems(data.miscellaneous || []);
+                } catch (error) {
+                    console.error('Error loading from sheets:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const saveToSheets = async (updatedItems) => {
+                if (!isSetupComplete) return;
+                setIsSyncing(true);
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'writeMiscellaneous', miscellaneous: updatedItems })
+                    });
+                    showSaveMessage('Synced to Google Sheets!');
+                } catch (error) {
+                    console.error('Error saving to sheets:', error);
+                } finally {
+                    setIsSyncing(false);
+                }
+            };
+
+            const calculateStatus = (dueDate) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const due = new Date(dueDate);
+                due.setHours(0, 0, 0, 0);
+                const twoWeeksBeforeDue = new Date(due);
+                twoWeeksBeforeDue.setDate(twoWeeksBeforeDue.getDate() - 14);
+                const diffTime = due - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) return { status: 'overdue', color: 'red', label: 'Past Due', days: Math.abs(diffDays) };
+                else if (today >= twoWeeksBeforeDue) return { status: 'warning', color: 'yellow', label: 'Due Soon', days: diffDays };
+                else return { status: 'good', color: 'green', label: 'Current', days: diffDays };
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.name && formData.dateTaken && formData.dueDate) {
+                    const newItem = {
+                        id: Date.now(),
+                        name: formData.name,
+                        dateTaken: formData.dateTaken,
+                        dueDate: formData.dueDate
+                    };
+                    const updatedItems = [...items, newItem];
+                    setItems(updatedItems);
+                    setFormData({ name: '', dateTaken: '', dueDate: '' });
+                    showSaveMessage('Miscellaneous item added!');
+                    if (isSetupComplete) saveToSheets(updatedItems);
+                }
+            };
+
+            const startEditing = (item) => {
+                setEditingId(item.id);
+                setEditData({ name: item.name, dateTaken: item.dateTaken, dueDate: item.dueDate });
+            };
+
+            const cancelEditing = () => {
+                setEditingId(null);
+                setEditData({ name: '', dateTaken: '', dueDate: '' });
+            };
+
+            const saveEdit = (id) => {
+                if (editData.name && editData.dateTaken && editData.dueDate) {
+                    const updatedItems = items.map(item => 
+                        item.id === id ? { ...item, name: editData.name, dateTaken: editData.dateTaken, dueDate: editData.dueDate } : item
+                    );
+                    setItems(updatedItems);
+                    setEditingId(null);
+                    setEditData({ name: '', dateTaken: '', dueDate: '' });
+                    showSaveMessage('Item updated!');
+                    if (isSetupComplete) saveToSheets(updatedItems);
+                }
+            };
+
+            const deleteItem = (id) => {
+                const updatedItems = items.filter(i => i.id !== id);
+                setItems(updatedItems);
+                showSaveMessage('Item deleted!');
+                if (isSetupComplete) saveToSheets(updatedItems);
+            };
+
+            const showSaveMessage = (message) => {
+                setSaveMessage(message);
+                setTimeout(() => setSaveMessage(''), 3000);
+            };
+
+            const getStatusStyles = (color) => {
+                switch(color) {
+                    case 'red': return 'bg-red-100 border-red-500 text-red-900';
+                    case 'yellow': return 'bg-yellow-100 border-yellow-500 text-yellow-900';
+                    case 'green': return 'bg-green-100 border-green-500 text-green-900';
+                    default: return 'bg-gray-100 border-gray-500 text-gray-900';
+                }
+            };
+
+            const getStatusIcon = (color) => {
+                switch(color) {
+                    case 'red': return <AlertCircle className="w-5 h-5" />;
+                    case 'yellow': return <Clock className="w-5 h-5" />;
+                    case 'green': return <CheckCircle className="w-5 h-5" />;
+                    default: return null;
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-50 to-amber-100 p-4 md:p-6">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center">
+                                    <a href="./tracker-dashboard.html" className="mr-4 text-gray-600 hover:text-gray-800 transition">
+                                        <ArrowLeft className="w-6 h-6" />
+                                    </a>
+                                    <div>
+                                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Miscellaneous Tracker</h1>
+                                        <p className="text-sm md:text-base text-gray-600">Track miscellaneous items with custom due dates - Marlon's Tracker</p>
+                                    </div>
+                                </div>
+                                {isSetupComplete && (
+                                    <button onClick={loadFromSheets} disabled={isLoading || isSyncing}
+                                        className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center text-sm">
+                                        <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                                        Refresh
+                                    </button>
+                                )}
+                            </div>
+                            {saveMessage && (
+                                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg flex items-center text-sm">
+                                    <Save className="w-4 h-4 mr-2" />
+                                    {saveMessage}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">Add Miscellaneous Item</h2>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                                    <input type="text" value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        placeholder="e.g., Annual Review, Records Update"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date Completed</label>
+                                    <input type="date" value={formData.dateTaken}
+                                        onChange={(e) => setFormData({ ...formData, dateTaken: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        required />
+                                    <p className="text-xs text-gray-500 mt-1">Date when this item was completed</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                    <input type="date" value={formData.dueDate}
+                                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        required />
+                                    <p className="text-xs text-gray-500 mt-1">Set custom due date for this item</p>
+                                </div>
+                                <button type="submit" disabled={isSyncing}
+                                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Add Item
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">Your Miscellaneous Items</h2>
+                            {items.length === 0 ? (
+                                <p className="text-gray-500 text-center py-8">No items yet. Add your first administration item above!</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {items.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)).map(item => {
+                                        const status = calculateStatus(item.dueDate);
+                                        return (
+                                            <div key={item.id} className={`p-4 rounded-lg border-l-4 ${getStatusStyles(status.color)}`}>
+                                                {editingId === item.id ? (
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="block text-sm font-medium mb-1">Item Name</label>
+                                                            <input type="text" value={editData.name}
+                                                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium mb-1">Date Completed</label>
+                                                            <input type="date" value={editData.dateTaken}
+                                                                onChange={(e) => setEditData({ ...editData, dateTaken: e.target.value })}
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-sm font-medium mb-1">Due Date</label>
+                                                            <input type="date" value={editData.dueDate}
+                                                                onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })}
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => saveEdit(item.id)} disabled={isSyncing}
+                                                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center justify-center text-sm">
+                                                                <Save className="w-4 h-4 mr-2" />Save
+                                                            </button>
+                                                            <button onClick={cancelEditing}
+                                                                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center justify-center text-sm">
+                                                                <X className="w-4 h-4 mr-2" />Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-start space-x-3 flex-1">
+                                                            {getStatusIcon(status.color)}
+                                                            <div className="flex-1">
+                                                                <h3 className="font-semibold text-lg">{item.name}</h3>
+                                                                <div className="text-sm space-y-1 mt-1">
+                                                                    <p><span className="font-medium">Completed:</span> {new Date(item.dateTaken).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                                    <p><span className="font-medium">Due:</span> {new Date(item.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                                    <p className="font-semibold">
+                                                                        {status.label}: {status.status === 'overdue' ? `${status.days} days overdue` : `${status.days} days remaining`}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 ml-4">
+                                                            <button onClick={() => startEditing(item)}
+                                                                className="text-gray-400 hover:text-purple-600 transition">
+                                                                <Edit className="w-5 h-5" />
+                                                            </button>
+                                                            <button onClick={() => deleteItem(item.id)} disabled={isSyncing}
+                                                                className="text-gray-400 hover:text-red-600 transition">
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <h3 className="font-semibold text-purple-900 mb-2">📋 Miscellaneous Tracker Info</h3>
+                            <p className="text-sm text-purple-800">
+                                Set custom due dates for each item. Yellow warning at 14 days, red when overdue. Click "Refresh" to sync!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdministrationTracker />);
+    </script>
+</body>
+</html>
