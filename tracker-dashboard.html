@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Tracker Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .tracker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tracker-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .tracker-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .tracker-card.medical {
+            border-left: 5px solid #e74c3c;
+        }
+
+        .tracker-card.dental {
+            border-left: 5px solid #3498db;
+        }
+
+        .tracker-card.administration {
+            border-left: 5px solid #9b59b6;
+        }
+
+        .tracker-card.miscellaneous {
+            border-left: 5px solid #16a085;
+        }
+
+        .tracker-card.training {
+            border-left: 5px solid #667eea;
+        }
+
+        .tracker-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .tracker-name {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .tracker-description {
+            color: #7f8c8d;
+            font-size: 0.95em;
+        }
+
+        .google-sheet-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .google-sheet-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .google-sheet-section p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .google-sheet-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .google-sheet-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(39,174,96,0.3);
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+
+        .info-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            color: #555;
+            margin: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .info-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .tracker-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Training Tracker</h1>
+            <p>Manage all your certifications and requirements in one place</p>
+        </div>
+
+        <div class="content">
+            <div class="tracker-grid">
+                <a href="my-training.html" class="tracker-card training">
+                    <div class="tracker-icon">📚</div>
+                    <div class="tracker-name">My Training</div>
+                    <div class="tracker-description">Track your training certifications</div>
+                </a>
+
+                <a href="medical.html" class="tracker-card medical">
+                    <div class="tracker-icon">🏥</div>
+                    <div class="tracker-name">Medical</div>
+                    <div class="tracker-description">Track medical certifications</div>
+                </a>
+
+                <a href="dental.html" class="tracker-card dental">
+                    <div class="tracker-icon">🦷</div>
+                    <div class="tracker-name">Dental</div>
+                    <div class="tracker-description">Track dental requirements</div>
+                </a>
+
+                <a href="administration.html" class="tracker-card administration">
+                    <div class="tracker-icon">📋</div>
+                    <div class="tracker-name">Administration</div>
+                    <div class="tracker-description">Track administrative items</div>
+                </a>
+
+                <a href="miscellaneous.html" class="tracker-card miscellaneous">
+                    <div class="tracker-icon">📌</div>
+                    <div class="tracker-name">Miscellaneous</div>
+                    <div class="tracker-description">Track other requirements</div>
+                </a>
+            </div>
+
+            <div class="google-sheet-section">
+                <h2>📊 View in Google Sheets</h2>
+                <p>Access your data directly in Google Sheets for advanced viewing and analysis</p>
+                <a href="YOUR_GOOGLE_SHEET_URL_HERE" target="_blank" class="google-sheet-btn">
+                    Open Google Sheet
+                </a>
+            </div>
+
+            <div class="info-section">
+                <h3>Color Coding System</h3>
+                <ul>
+                    <li><strong>Red:</strong> Overdue items</li>
+                    <li><strong>Yellow:</strong> Due within 30 days</li>
+                    <li><strong>Blue:</strong> Due within 90 days</li>
+                    <li><strong>Purple:</strong> Due within 365 days (My Training only)</li>
+                    <li><strong>Green:</strong> Due beyond the threshold</li>
+                </ul>
+            </div>
+
+            <div class="info-section">
+                <h3>Features</h3>
+                <ul>
+                    <li>Add, edit, and delete training items</li>
+                    <li>Automatic sync with Google Sheets</li>
+                    <li>Color-coded status based on due dates</li>
+                    <li>Track date taken and due date</li>
+                    <li>Add website links and notes</li>
+                    <li>Sort items by due date automatically</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
