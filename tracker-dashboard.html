@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Tracker Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #FF9900 0%, #FFAA00 100%);
+            border-radius: 0 50px 50px 0;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(255, 153, 0, 0.5);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #000;
+            margin-top: 10px;
+        }
+
+        .tracker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tracker-card {
+            background: #1a1a1a;
+            border: 2px solid #9999FF;
+            border-radius: 20px 0 20px 0;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            box-shadow: 0 0 20px rgba(153, 153, 255, 0.3);
+        }
+
+        .tracker-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 0 40px rgba(153, 153, 255, 0.6);
+            border-color: #FF9900;
+        }
+
+        .tracker-icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .tracker-name {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #9999FF;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tracker-description {
+            color: #CCCCCC;
+            font-size: 1em;
+        }
+
+        .warning-section {
+            background: #1a1a1a;
+            border-left: 5px solid #FF3333;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 0 15px 15px 0;
+        }
+
+        .warning-section.yellow {
+            border-left-color: #FFCC00;
+        }
+
+        .warning-section h2 {
+            color: #FF9900;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .links-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 2px solid #FF9900;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .links-section h2 {
+            color: #FF9900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.8em;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .link-item {
+            background: #000;
+            border: 2px solid #9999FF;
+            border-radius: 10px 0 10px 0;
+            padding: 15px 20px;
+            transition: all 0.3s;
+        }
+
+        .link-item:hover {
+            border-color: #FF9900;
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+        }
+
+        .link-item h3 {
+            color: #9999FF;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .link-item a {
+            color: #FFAA00;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+
+        .link-item a:hover {
+            color: #FF9900;
+            text-decoration: underline;
+        }
+
+        .info-section {
+            background: #1a1a1a;
+            border: 2px solid #9999FF;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .info-section h3 {
+            color: #FF9900;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            color: #CCCCCC;
+            margin: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .info-section li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #FF9900;
+            font-size: 1.5em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .tracker-grid {
+                grid-template-columns: 1fr;
+            }
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 TRAINING TRACKER</h1>
+            <p>Mission Control: Certification Management System</p>
+        </div>
+
+        <div class="warning-section">
+            <h2>⚠️ OVERDUE ITEMS</h2>
+            <p style="color: #CCCCCC;">Items that are past their due date will appear here. Check individual trackers for details.</p>
+        </div>
+
+        <div class="warning-section yellow">
+            <h2>⏰ DUE IN 2 WEEKS</h2>
+            <p style="color: #CCCCCC;">Items due within 2 weeks will appear here. Check individual trackers for details.</p>
+        </div>
+
+        <div class="tracker-grid">
+            <a href="my-training.html" class="tracker-card">
+                <div class="tracker-icon">📚</div>
+                <div class="tracker-name">My Training</div>
+                <div class="tracker-description">Track your training certifications</div>
+            </a>
+
+            <a href="medical.html" class="tracker-card">
+                <div class="tracker-icon">🏥</div>
+                <div class="tracker-name">Medical</div>
+                <div class="tracker-description">Track medical certifications</div>
+            </a>
+
+            <a href="dental.html" class="tracker-card">
+                <div class="tracker-icon">🦷</div>
+                <div class="tracker-name">Dental</div>
+                <div class="tracker-description">Track dental requirements</div>
+            </a>
+
+            <a href="administration.html" class="tracker-card">
+                <div class="tracker-icon">📋</div>
+                <div class="tracker-name">Administration</div>
+                <div class="tracker-description">Track administrative items</div>
+            </a>
+
+            <a href="miscellaneous.html" class="tracker-card">
+                <div class="tracker-icon">📌</div>
+                <div class="tracker-name">Miscellaneous</div>
+                <div class="tracker-description">Track other requirements</div>
+            </a>
+        </div>
+
+        <div class="links-section">
+            <h2>🔗 USEFUL LINKS</h2>
+            <div class="links-grid">
+                <div class="link-item">
+                    <h3>AKO-Offline</h3>
+                    <a href="https://akoffline.us/" target="_blank">https://akoffline.us/</a>
+                </div>
+                <div class="link-item">
+                    <h3>JKO Online Training</h3>
+                    <a href="https://jkodirect.jten.mil/Atlas2/page/login/Login.jsf" target="_blank">https://jkodirect.jten.mil/Atlas2/page/login/Login.jsf</a>
+                </div>
+                <div class="link-item">
+                    <h3>HRC iPERM</h3>
+                    <a href="https://www.hrc.army.mil/content/iPERMS%20Access" target="_blank">https://www.hrc.army.mil/content/iPERMS%20Access</a>
+                </div>
+                <div class="link-item">
+                    <h3>HRC Portal</h3>
+                    <a href="https://www.hrc.army.mil/" target="_blank">https://www.hrc.army.mil/</a>
+                </div>
+                <div class="link-item">
+                    <h3>NCOER (EES)</h3>
+                    <a href="https://evaluations.hrc.army.mil/index.html" target="_blank">https://evaluations.hrc.army.mil/index.html</a>
+                </div>
+                <div class="link-item">
+                    <h3>Army Pubs</h3>
+                    <a href="https://armypubs.army.mil/" target="_blank">https://armypubs.army.mil/</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>📊 COLOR CODING SYSTEM</h3>
+            <ul>
+                <li><strong style="color: #FF3333;">RED:</strong> Overdue (0 days and after)</li>
+                <li><strong style="color: #FFCC00;">YELLOW:</strong> Due within 2 weeks</li>
+                <li><strong style="color: #00FF00;">GREEN:</strong> Due in 2+ weeks</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h3>⚡ FEATURES</h3>
+            <ul>
+                <li>Add, edit, and delete training items</li>
+                <li>Automatic sync with Google Sheets</li>
+                <li>Color-coded status based on due dates</li>
+                <li>Annual checkbox for recurring items</li>
+                <li>Track date taken and due date</li>
+                <li>Add website links and notes</li>
+                <li>Optimized for desktop, tablet, and mobile</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
