@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Tracker - LCARS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background-color: #000; color: #FF9900; padding: 30px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #FF9900 0%, #FFAA33 100%); color: #000; padding: 30px; border-radius: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(255, 153, 0, 0.3); }
+        header h1 { font-size: 2.5em; letter-spacing: 8px; text-transform: uppercase; font-weight: bold; }
+        nav { background: linear-gradient(135deg, #9999FF 0%, #AAAAFF 100%); padding: 20px 30px; border-radius: 30px; margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; box-shadow: 0 8px 32px rgba(153, 153, 255, 0.3); }
+        nav a { background: linear-gradient(135deg, #FF9900 0%, #FFAA33 100%); color: #000; padding: 12px 28px; text-decoration: none; border-radius: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 153, 0, 0.2); }
+        nav a:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 153, 0, 0.4); }
+        .content { display: grid; grid-template-columns: 400px 1fr; gap: 30px; }
+        .form-section { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); padding: 30px; border-radius: 25px; border: 3px solid #FF9900; position: sticky; top: 20px; height: fit-content; box-shadow: 0 8px 32px rgba(255, 153, 0, 0.3); }
+        .form-section h2 { color: #FF9900; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-size: 1.5em; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #FF9900; text-transform: uppercase; font-size: 0.9em; letter-spacing: 2px; font-weight: bold; }
+        .form-group input[type="text"], .form-group select { width: 100%; padding: 12px; background-color: #000; border: 2px solid #9999FF; color: #FF9900; border-radius: 10px; font-family: Arial, sans-serif; transition: all 0.3s; }
+        .form-group input[type="text"]:focus, .form-group select:focus { border-color: #FF9900; outline: none; box-shadow: 0 0 15px rgba(255, 153, 0, 0.3); }
+        button { background: linear-gradient(135deg, #FF9900 0%, #FFAA33 100%); color: #000; padding: 14px 35px; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s; margin-top: 10px; box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 153, 0, 0.5); }
+        .list-section { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); padding: 30px; border-radius: 25px; border: 3px solid #00FFFF; box-shadow: 0 8px 32px rgba(0, 255, 255, 0.3); }
+        .list-section h2 { color: #FF9900; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-size: 1.5em; }
+        .item-card { background-color: #000; border: 3px solid #00FF00; border-radius: 20px; padding: 25px; margin-bottom: 20px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 0, 0.2); }
+        .item-card:hover { transform: translateX(5px); }
+        .item-card.warning { border-color: #FFCC00; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3); }
+        .item-card.overdue { border-color: #FF3333; box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3); }
+        .item-card h3 { color: #00FFFF; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+        .item-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; color: #FF9900; }
+        .item-info div { font-size: 0.95em; }
+        .item-info strong { color: #9999FF; }
+        .status-badge { display: inline-block; padding: 8px 18px; border-radius: 12px; font-weight: bold; text-transform: uppercase; font-size: 0.9em; margin-top: 12px; letter-spacing: 1px; }
+        .status-good { background-color: #00FF00; color: #000; }
+        .status-warning { background-color: #FFCC00; color: #000; }
+        .status-overdue { background-color: #FF3333; color: #fff; }
+        @media (max-width: 900px) { .content { grid-template-columns: 1fr; } .form-section { position: static; } header h1 { font-size: 1.8em; letter-spacing: 4px; } }
+        #loading { text-align: center; color: #FF9900; font-size: 1.3em; padding: 30px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>DENTAL TRACKER</h1></header>
+        <nav>
+            <a href="tracker-dashboard.html">DASHBOARD</a>
+            <a href="medical.html">MEDICAL</a>
+            <a href="my-training.html">MY TRAINING</a>
+            <a href="dental.html">DENTAL</a>
+            <a href="administration.html">ADMINISTRATION</a>
+            <a href="miscellaneous.html">MISCELLANEOUS</a>
+        </nav>
+        <div class="content">
+            <div class="form-section">
+                <h2>UPDATE DENTAL ITEM</h2>
+                <form id="itemForm">
+                    <div class="form-group">
+                        <label for="itemSelect">Select Item *</label>
+                        <select id="itemSelect" required>
+                            <option value="">-- Select --</option>
+                            <option value="Annual Checkup">Annual Checkup</option>
+                            <option value="Cleaning">Cleaning</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTaken">Date Taken *</label>
+                        <input type="text" id="dateTaken" required placeholder="YYYY-MM-DD">
+                    </div>
+                    <button type="submit">Update Item</button>
+                </form>
+            </div>
+            <div class="list-section">
+                <h2>DENTAL ITEMS</h2>
+                <div id="loading">Loading...</div>
+                <div id="itemsList"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzlaBDGLYYPonmLVjeEXJlAzVBjCBP65IRa18lCjyZrfFQlvaZL1WZm-Mny5xMTHqmA/exec';
+        let items = [];
+        flatpickr("#dateTaken", { dateFormat: "Y-m-d", theme: "dark", allowInput: true });
+        window.addEventListener('DOMContentLoaded', loadItems);
+        async function loadItems() {
+            try {
+                const response = await fetch(`${API_URL}?action=readDental`);
+                const data = await response.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    items = data.data;
+                } else {
+                    items = [
+                        { id: 'dental1', name: 'Annual Checkup', dateTaken: '', annual: true, dueDate: '' },
+                        { id: 'dental2', name: 'Cleaning', dateTaken: '', annual: true, dueDate: '' }
+                    ];
+                    await saveItems();
+                }
+                renderItems();
+            } catch (error) {
+                document.getElementById('loading').textContent = 'Error loading items: ' + error.message;
+            }
+        }
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            document.getElementById('loading').style.display = 'none';
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            container.innerHTML = items.map(item => {
+                if (!item.dueDate) {
+                    return `
+                        <div class="item-card">
+                            <h3>${item.name}</h3>
+                            <div class="item-info">
+                                <div><strong>Date Taken:</strong> Not Set</div>
+                                <div><strong>Due Date:</strong> Not Set</div>
+                            </div>
+                            <div class="status-badge" style="background-color: #666; color: #fff;">PENDING UPDATE</div>
+                        </div>
+                    `;
+                }
+                const dueDate = new Date(item.dueDate);
+                const diffTime = dueDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                let statusClass = 'good', statusText = `${diffDays} days remaining`, cardClass = '';
+                if (diffDays <= 0) {
+                    statusClass = 'overdue'; statusText = diffDays === 0 ? 'Due TODAY' : `${Math.abs(diffDays)} days OVERDUE`; cardClass = 'overdue';
+                } else if (diffDays <= 14) {
+                    statusClass = 'warning'; statusText = `Due in ${diffDays} days`; cardClass = 'warning';
+                }
+                return `
+                    <div class="item-card ${cardClass}">
+                        <h3>${item.name}</h3>
+                        <div class="item-info">
+                            <div><strong>Date Taken:</strong> ${item.dateTaken}</div>
+                            <div><strong>Due Date:</strong> ${item.dueDate}</div>
+                            <div><strong>Annual:</strong> Yes</div>
+                        </div>
+                        <div class="status-badge status-${statusClass}">${statusText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        document.getElementById('itemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const itemName = document.getElementById('itemSelect').value;
+            const dateTaken = document.getElementById('dateTaken').value;
+            const taken = new Date(dateTaken);
+            taken.setFullYear(taken.getFullYear() + 1);
+            const dueDate = taken.toISOString().split('T')[0];
+            const index = items.findIndex(i => i.name === itemName);
+            if (index !== -1) {
+                items[index].dateTaken = dateTaken;
+                items[index].dueDate = dueDate;
+                items[index].annual = true;
+            }
+            await saveItems();
+            document.getElementById('itemForm').reset();
+            renderItems();
+        });
+        async function saveItems() {
+            try {
+                const response = await fetch(`${API_URL}?action=writeDental&data=${encodeURIComponent(JSON.stringify(items))}`);
+                const data = await response.json();
+                if (!data.success) alert('Error saving: ' + data.message);
+            } catch (error) { alert('Error saving: ' + error.message); }
+        }
+    </script>
+</body>
+</html>
