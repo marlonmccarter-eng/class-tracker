@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #000; color: #fff; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header { background: linear-gradient(90deg, #FF3333 0%, #FF5555 100%); border-radius: 0 50px 50px 0; padding: 30px 40px; margin-bottom: 30px; box-shadow: 0 0 30px rgba(255, 51, 51, 0.5); }
+        .header h1 { font-size: 2.5em; color: #000; text-transform: uppercase; letter-spacing: 3px; }
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .nav-btn { padding: 12px 25px; background: #1a1a1a; color: #9999FF; border: 2px solid #9999FF; border-radius: 10px 0 10px 0; cursor: pointer; font-size: 1em; transition: all 0.3s; text-decoration: none; display: inline-block; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-btn:hover { background: #9999FF; color: #000; box-shadow: 0 0 20px rgba(153, 153, 255, 0.6); }
+        .two-column { display: grid; grid-template-columns: 400px 1fr; gap: 30px; }
+        .form-section { background: #1a1a1a; border: 2px solid #FF9900; border-radius: 15px; padding: 25px; height: fit-content; position: sticky; top: 20px; }
+        .form-section h2 { color: #FF9900; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #9999FF; text-transform: uppercase; font-size: 0.9em; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: #000; border: 2px solid #9999FF; border-radius: 8px; font-size: 1em; transition: border-color 0.3s; color: #fff; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #FF9900; box-shadow: 0 0 10px rgba(255, 153, 0, 0.3); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .checkbox-group label { margin: 0; cursor: pointer; }
+        .btn { padding: 12px 30px; background: #FF9900; color: #000; border: none; border-radius: 10px 0 10px 0; cursor: pointer; font-size: 1em; font-weight: 600; transition: all 0.3s; margin-right: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { background: #FFAA00; box-shadow: 0 0 20px rgba(255, 153, 0, 0.6); transform: translateY(-2px); }
+        .btn-secondary { background: #1a1a1a; color: #9999FF; border: 2px solid #9999FF; }
+        .btn-secondary:hover { background: #9999FF; color: #000; }
+        .items-list { background: #1a1a1a; border: 2px solid #9999FF; border-radius: 15px; padding: 25px; }
+        .items-list h2 { color: #FF9900; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .item-card { background: #000; border-left: 5px solid #FF3333; padding: 20px; margin-bottom: 15px; border-radius: 0 10px 10px 0; transition: all 0.3s; }
+        .item-card:hover { transform: translateX(5px); box-shadow: 0 0 20px rgba(255, 51, 51, 0.4); }
+        .item-card.overdue { border-left-color: #FF3333; background: #1a0000; }
+        .item-card.warning { border-left-color: #FFCC00; background: #1a1a00; }
+        .item-card.good { border-left-color: #00FF00; background: #001a00; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .item-name { font-size: 1.3em; font-weight: 600; color: #9999FF; }
+        .item-status { padding: 5px 15px; border-radius: 15px; font-size: 0.9em; font-weight: 600; text-transform: uppercase; }
+        .status-overdue { background: #FF3333; color: #000; }
+        .status-warning { background: #FFCC00; color: #000; }
+        .status-good { background: #00FF00; color: #000; }
+        .item-details { margin: 10px 0; color: #CCCCCC; }
+        .item-details p { margin: 5px 0; }
+        .item-actions { margin-top: 15px; display: flex; gap: 10px; }
+        .btn-small { padding: 8px 16px; font-size: 0.9em; }
+        .btn-edit { background: #9999FF; color: #000; }
+        .btn-edit:hover { background: #AAAAFF; }
+        .btn-delete { background: #FF3333; color: #fff; }
+        .btn-delete:hover { background: #FF5555; }
+        .message { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; border: 2px solid; }
+        .message.success { background: #001a00; color: #00FF00; border-color: #00FF00; }
+        .message.error { background: #1a0000; color: #FF3333; border-color: #FF3333; }
+        @media (max-width: 1200px) {
+            .two-column { grid-template-columns: 1fr; }
+            .form-section { position: relative; top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 MEDICAL TRACKER</h1>
+        </div>
+        <div class="nav-buttons">
+            <a href="tracker-dashboard.html" class="nav-btn">📊 Dashboard</a>
+            <a href="my-training.html" class="nav-btn">📚 My Training</a>
+            <a href="dental.html" class="nav-btn">🦷 Dental</a>
+            <a href="administration.html" class="nav-btn">📋 Administration</a>
+            <a href="miscellaneous.html" class="nav-btn">📌 Miscellaneous</a>
+        </div>
+        <div id="message" class="message"></div>
+        <div class="two-column">
+            <div class="form-section">
+                <h2 id="formTitle">Add Medical Item</h2>
+                <form id="medicalForm">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTaken">Date Taken</label>
+                        <input type="date" id="dateTaken">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="annual">
+                        <label for="annual">Annual (1 year = 365 days)</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Due Date *</label>
+                        <input type="date" id="dueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Website</label>
+                        <input type="url" id="website">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Save Item</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                </form>
+            </div>
+            <div class="items-list">
+                <h2>Medical Items</h2>
+                <div id="itemsList"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlaBDGLYYPonmLVjeEXJlAzVBjCBP65IRa18lCjyZrfFQlvaZL1WZm-Mny5xMTHqmA/exec';
+        let medicalItems = [];
+        let editingId = null;
+
+        document.getElementById('annual').addEventListener('change', function() {
+            const dateTaken = document.getElementById('dateTaken').value;
+            const dueDateInput = document.getElementById('dueDate');
+            if (this.checked && dateTaken) {
+                const taken = new Date(dateTaken);
+                taken.setFullYear(taken.getFullYear() + 1);
+                dueDateInput.value = taken.toISOString().split('T')[0];
+            }
+        });
+
+        document.getElementById('dateTaken').addEventListener('change', function() {
+            const annual = document.getElementById('annual');
+            const dueDateInput = document.getElementById('dueDate');
+            if (annual.checked && this.value) {
+                const taken = new Date(this.value);
+                taken.setFullYear(taken.getFullYear() + 1);
+                dueDateInput.value = taken.toISOString().split('T')[0];
+            }
+        });
+
+        async function loadFromSheets() {
+            try {
+                showMessage('Loading data from Google Sheets...', 'success');
+                const response = await fetch(`${SCRIPT_URL}?action=readMedical`);
+                const data = await response.json();
+                if (data.success) {
+                    medicalItems = data.medical || [];
+                    // Ensure all items have IDs (fixes old data)
+                    medicalItems = medicalItems.map(item => ({
+                        ...item,
+                        id: item.id || Date.now().toString() + '-' + Math.random()
+                    }));
+                    displayItems();
+                    showMessage('Data loaded successfully!', 'success');
+                } else {
+                    showMessage('Error loading data: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function saveToSheets() {
+            try {
+                showMessage('Saving to Google Sheets...', 'success');
+                const encodedData = encodeURIComponent(JSON.stringify(medicalItems));
+                const url = `${SCRIPT_URL}?action=writeMedical&data=${encodedData}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Saved to Google Sheets!', 'success');
+                } else {
+                    showMessage('Error saving: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        document.getElementById('medicalForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const item = {
+                id: editingId || Date.now().toString(),
+                name: document.getElementById('name').value,
+                dateTaken: document.getElementById('dateTaken').value,
+                annual: document.getElementById('annual').checked,
+                dueDate: document.getElementById('dueDate').value,
+                website: document.getElementById('website').value,
+                notes: document.getElementById('notes').value
+            };
+            if (editingId) {
+                const index = medicalItems.findIndex(i => i.id === editingId);
+                medicalItems[index] = item;
+                editingId = null;
+            } else {
+                medicalItems.push(item);
+            }
+            await saveToSheets();
+            this.reset();
+            document.getElementById('formTitle').textContent = 'Add Medical Item';
+            displayItems();
+        });
+
+        function displayItems() {
+            const container = document.getElementById('itemsList');
+            if (medicalItems.length === 0) {
+                container.innerHTML = '<p style="color: #CCCCCC;">No medical items yet. Add one using the form!</p>';
+                return;
+            }
+            medicalItems.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            container.innerHTML = medicalItems.map(item => {
+                const daysUntilDue = getDaysUntilDue(item.dueDate);
+                const statusClass = getStatusClass(daysUntilDue);
+                const statusText = getStatusText(daysUntilDue);
+                return `
+                    <div class="item-card ${statusClass}">
+                        <div class="item-header">
+                            <div class="item-name">${item.name}${item.annual ? ' 🔄' : ''}</div>
+                            <div class="item-status status-${statusClass}">${statusText}</div>
+                        </div>
+                        <div class="item-details">
+                            ${item.dateTaken ? `<p><strong>Date Taken:</strong> ${formatDate(item.dateTaken)}</p>` : ''}
+                            <p><strong>Due Date:</strong> ${formatDate(item.dueDate)}</p>
+                            ${item.annual ? '<p><strong>Type:</strong> Annual (365 days)</p>' : ''}
+                            ${item.website ? `<p><strong>Website:</strong> <a href="${item.website}" target="_blank" style="color: #FFAA00;">${item.website}</a></p>` : ''}
+                            ${item.notes ? `<p><strong>Notes:</strong> ${item.notes}</p>` : ''}
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-small btn-edit" onclick="editItem('${item.id}')">Edit</button>
+                            <button class="btn btn-small btn-delete" onclick="deleteItem('${item.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function editItem(id) {
+            const item = medicalItems.find(i => i.id === id);
+            if (item) {
+                editingId = id;
+                document.getElementById('name').value = item.name;
+                document.getElementById('dateTaken').value = item.dateTaken;
+                document.getElementById('annual').checked = item.annual || false;
+                document.getElementById('dueDate').value = item.dueDate;
+                document.getElementById('website').value = item.website;
+                document.getElementById('notes').value = item.notes;
+                document.getElementById('formTitle').textContent = 'Edit Medical Item';
+                window.scrollTo(0, 0);
+            }
+        }
+
+        async function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                medicalItems = medicalItems.filter(i => i.id !== id);
+                await saveToSheets();
+                displayItems();
+            }
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('medicalForm').reset();
+            document.getElementById('formTitle').textContent = 'Add Medical Item';
+        }
+
+        function getDaysUntilDue(dueDate) {
+            const today = new Date();
+            const due = new Date(dueDate);
+            return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function getStatusClass(days) {
+            if (days <= 0) return 'overdue';
+            if (days <= 14) return 'warning';
+            return 'good';
+        }
+
+        function getStatusText(days) {
+            if (days < 0) return `Overdue by ${Math.abs(days)} days`;
+            if (days === 0) return 'Due today';
+            if (days === 1) return 'Due tomorrow';
+            return `Due in ${days} days`;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
+        }
+
+        loadFromSheets();
+    </script>
+</body>
+</html>
